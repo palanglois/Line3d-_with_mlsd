@@ -1,25 +1,55 @@
 cmake_minimum_required(VERSION 2.6)
 
-set (CMAKE_BUILD_TYPE Release)
+#set (CMAKE_BUILD_TYPE Release)
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(L3DPP_MLSD 1)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ##-----------------------------------------------------------------------------
 ## OpenCV
 FIND_PACKAGE(OpenCV REQUIRED)
 
-# check for OpenCV >= 3
-if(${OpenCV_VERSION_MAJOR} GREATER "2")
-  FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs)
-  message("using LSD from OpenCV 3")
-  SET(L3DPP_OPENCV3 1)
-else(${OpenCV_VERSION_MAJOR} GREATER "2")
-  FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui)
-  SET(lsd_SOURCES lsd/lsd.cpp lsd/lsd_opencv.cpp lsd/lsd_wrap.cpp)
-  SET(lsd_HEADERS lsd/lsd.hpp lsd/lsd_opencv.hpp lsd/lsd_wrap.hpp)
-  add_library(line3Dpp_lsd SHARED ${lsd_SOURCES} ${lsd_HEADERS})
-  target_link_libraries(line3Dpp_lsd ${OpenCV_LIBS})
-endif(${OpenCV_VERSION_MAJOR} GREATER "2")
+if(${L3DPP_MLSD})
+    # MLSD version #
+    #Adding a definition to specify the new code in the cpp
+    add_definitions(-DL3DPP_MLSD)
+    #Finding required OpenCV components
+    FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui)
+    #Finding required OpenMVG components
+    SET(NUMERIC	third_party/openMVG/numeric/numeric.cpp
+            third_party/openMVG/numeric/numeric.h
+            third_party/openMVG/numeric/poly.h
+            third_party/openMVG/numeric/lm.hpp)
+    #Finding the required sources
+    SET(lsd_SOURCES mlsd/lsd.cpp mlsd/detection.cpp mlsd/mlsd.cpp)
+    SET(lsd_HEADERS mlsd/lsd.hpp mlsd/detection.hpp mlsd/mlsd.hpp)
+    include_directories(mlsd)
+    include_directories(third_party)
+    add_library(line3Dpp_lsd SHARED ${lsd_SOURCES} ${lsd_HEADERS} ${NUMERIC})
+    target_link_libraries(line3Dpp_lsd ${OpenCV_LIBS})
+    # check for OpenCV >= 3
+    if(${OpenCV_VERSION_MAJOR} GREATER "2")
+        SET(L3DPP_OPENCV3 1)
+    endif(${OpenCV_VERSION_MAJOR} GREATER "2")
+    set (EXTRA_LIBRARIES
+        ${EXTRA_LIBRARIES}
+        line3Dpp_lsd
+        )
+else(${L3DPP_MLSD)
+    # check for OpenCV >= 3
+    if(${OpenCV_VERSION_MAJOR} GREATER "2")
+        FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui imgcodecs)
+        message("using LSD from OpenCV 3")
+        SET(L3DPP_OPENCV3 1)
+    else(${OpenCV_VERSION_MAJOR} GREATER "2")
+        FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui)
+        SET(lsd_SOURCES lsd/lsd.cpp lsd/lsd_opencv.cpp lsd/lsd_wrap.cpp)
+        SET(lsd_HEADERS lsd/lsd.hpp lsd/lsd_opencv.hpp lsd/lsd_wrap.hpp)
+        add_library(line3Dpp_lsd SHARED ${lsd_SOURCES} ${lsd_HEADERS})
+        target_link_libraries(line3Dpp_lsd ${OpenCV_LIBS})
+    endif(${OpenCV_VERSION_MAJOR} GREATER "2")
+endif(${L3DPP_MLSD})
+
 
 set (EXTRA_INC_DIRS
     ${EXTRA_INC_DIRS}
@@ -310,6 +340,11 @@ add_executable(runLine3Dpp_openmvg main_openmvg.cpp)
 target_link_libraries(runLine3Dpp_openmvg line3Dpp)
 target_link_libraries(runLine3Dpp_openmvg ${ALL_LIBRARIES})
 ENDIF(RapidJSON_FOUND)
+
+#----- Add main for Perso --------
+add_executable(runLine3Dpp_perso main_perso.cpp)
+target_link_libraries(runLine3Dpp_perso line3Dpp)
+target_link_libraries(runLine3Dpp_perso ${ALL_LIBRARIES})
 
 ENDIF(APP_LINE_3D++_BUILD_EXECUTABLES)
 

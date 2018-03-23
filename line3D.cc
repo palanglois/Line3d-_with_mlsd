@@ -309,13 +309,29 @@ namespace L3DPP
         }
 
         // detect line segments
-#ifndef L3DPP_OPENCV3
-        cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetectorPtr(cv::LSD_REFINE_ADV);
-#else
-        cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetector(cv::LSD_REFINE_ADV);
-#endif //L3DPP_LSD_EXT
         std::vector<cv::Vec4f> detections;
+#ifdef L3DPP_MLSD
+
+        // Run MLSD with its default parameters
+        bool multiscale = true;
+        double segment_length_threshold = 0.02;
+        std::vector<cv::Mat> imagePyramid = computeImagePyramid(imgResized, multiscale);
+        vector<Segment> detectionsSeg = lsd_multiscale(imagePyramid, segment_length_threshold, multiscale);
+
+        // Conversion
+        for(std::vector<Segment>::iterator detection = detectionsSeg.begin(); detection != detectionsSeg.end(); detection++)
+            detections.push_back(cv::Vec4f(detection->x1, detection->x2, detection->y1, detection->y2));
+
+#else
+        #ifndef L3DPP_OPENCV3
+        cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetectorPtr(cv::LSD_REFINE_ADV);
+        #else
+        cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetector(cv::LSD_REFINE_ADV);
+        #endif //L3DPP_LSD_EXT
         lsd->detect(imgResized,detections);
+#endif
+        for(int test = 0; test < detections.size() && test < 3; test++)
+            std::cout << detections[test] << std::endl;
 
         float diag = sqrtf(float(image.rows*image.rows)+float(image.cols*image.cols));
         float min_len = diag*L3D_DEF_MIN_LINE_LENGTH_FACTOR;

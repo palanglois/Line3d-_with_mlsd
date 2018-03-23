@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <queue>
 #include <iostream>
 #include <iomanip>
+#include <iostream>
 
 // external
 #include "eigen3/Eigen/Eigen"
@@ -41,6 +42,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core.hpp"
 #endif //L3DPP_OPENCV3
+
+
+#ifdef L3DPP_MLSD
+#include "detection.hpp"
+#endif
 
 // internal
 #include "clustering.h"
