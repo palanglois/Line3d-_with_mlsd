@@ -9,7 +9,7 @@ The interesting commit is [6c617f6b3632d4392c735cbedfcbbe5d08b386d5](https://git
 
 In this commit, the integration lies in the modifications made to CMakeLists.txt and line3D.cc.
 
-The files lsd/lsd_multi.cpp and lsd/lsd_multi.hpp were added I don't who added them and despite their names 
+I don't know the purpose of the files lsd/lsd_multi.cpp and lsd/lsd_multi.hpp. I don't who added them and despite their names 
 I don't think they implement mlsd. The file 'main_perso.cpp' was I think created by Alexander. That's the one we use to 
 make the executable runLine3Dpp_perso.
 
