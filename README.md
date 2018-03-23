@@ -1,3 +1,19 @@
+# Integrating MLSD
+
+This repo's purpose is to integrate mlsd to Line3d++.
+
+It is sufficient to run `./runLine3Dpp_perso` without option. The mlsd implementation can be enabled/disabled thanks to 
+the line "set(L3DPP_MLSD 1)" in CMakeLists.txt
+
+The interesting commit is [6c617f6b3632d4392c735cbedfcbbe5d08b386d5](https://github.com/palanglois/Line3d-_with_mlsd/commit/6c617f6b3632d4392c735cbedfcbbe5d08b386d5).
+
+In this commit, the integration lies in the modifications made to CMakeLists.txt and line3D.cc.
+
+The files lsd/lsd_multi.cpp and lsd/lsd_multi.hpp were added I don't who added them and despite their names 
+I don't think they implement mlsd. The file 'main_perso.cpp' was I think created by Alexander. That's the one we use to 
+make the executable runLine3Dpp_perso.
+
+
 ========
 Line3D++
 ========
