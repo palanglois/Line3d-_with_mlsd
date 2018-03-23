@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // std
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 // opencv
 #ifdef L3DPP_OPENCV3
@@ -47,12 +48,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int main(int argc, char *argv[])
 {
+
+
+    //Finding the media directory
+    string mediaDir = string(TEST_DIR);
+
+    string defaultInputDir = mediaDir + "CastleP30";
+    string defaultMavmapDir = mediaDir + "CastleP30/cameras";
+
+    //Make the images.txt file
+    ofstream imageFile((defaultInputDir + "/images.txt").c_str());
+    imageFile << 30 << endl;
+    for(int i=0; i< 30; i++)
+        imageFile<< setfill('0') << setw(4) << i << " " << defaultInputDir
+                 << "/" << setfill('0') << setw(4) << i << ".png" << endl;
+
     TCLAP::CmdLine cmd("LINE3D++");
 
-    TCLAP::ValueArg<std::string> inputArg("i", "input_folder", "folder containing the images", true, ".", "string");
+    TCLAP::ValueArg<std::string> inputArg("i", "input_folder", "folder containing the images", false, defaultInputDir, "string");
     cmd.add(inputArg);
 
-    TCLAP::ValueArg<std::string> mavmapArg("b", "mavmap_output", "full path to the mavmap output (image-data-*.txt)", true, "", "string");
+    TCLAP::ValueArg<std::string> mavmapArg("b", "mavmap_output", "full path to the mavmap output (image-data-*.txt)", false, defaultMavmapDir, "string");
     cmd.add(mavmapArg);
 
     TCLAP::ValueArg<std::string> extArg("t", "image_extension", "image extension (case sensitive), if not specified: jpg, png or bmp expected", false, "", "string");

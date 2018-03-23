@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.6)
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(L3DPP_MLSD 1)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+add_definitions(-DTEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/")
 
 ##-----------------------------------------------------------------------------
 ## OpenCV
