@@ -248,6 +248,9 @@ namespace L3DPP
                                               Eigen::Vector3d& t_out);
 
     private:
+#ifdef DEBUG_MLSD
+        int image_count;
+#endif
         // process worldpoint list
         void processWPlist(const unsigned int camID, const std::list<unsigned int>& wps);
 

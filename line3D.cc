@@ -1,3 +1,4 @@
+#include <math.h>
 #include "line3D.h"
 
 namespace L3DPP
@@ -18,6 +19,9 @@ namespace L3DPP
         med_scene_depth_ = L3D_EPS;
         med_scene_depth_lines_ = 0.0f;
         translation_ = Eigen::Vector3d(0,0,0);
+#ifdef DEBUG_MLSD
+        image_count = 0;
+#endif
 
         // default
         collinearity_t_ = L3D_DEF_COLLINEARITY_T;
@@ -314,13 +318,13 @@ namespace L3DPP
 
         // Run MLSD with its default parameters
         bool multiscale = true;
-        double segment_length_threshold = 0.02;
+        double segment_length_threshold = 0.003;
         std::vector<cv::Mat> imagePyramid = computeImagePyramid(imgResized, multiscale);
         vector<Segment> detectionsSeg = lsd_multiscale(imagePyramid, segment_length_threshold, multiscale);
 
         // Conversion
         for(std::vector<Segment>::iterator detection = detectionsSeg.begin(); detection != detectionsSeg.end(); detection++)
-            detections.push_back(cv::Vec4f(detection->x1, detection->x2, detection->y1, detection->y2));
+            detections.push_back(cv::Vec4f(detection->x1, detection->y1, detection->x2, detection->y2));
 
 #else
         #ifndef L3DPP_OPENCV3
@@ -330,8 +334,13 @@ namespace L3DPP
         #endif //L3DPP_LSD_EXT
         lsd->detect(imgResized,detections);
 #endif
-        for(int test = 0; test < detections.size() && test < 3; test++)
-            std::cout << detections[test] << std::endl;
+#ifdef DEBUG_MLSD
+        for(int test = 0; test < detections.size(); test++)
+            cv::line(imgResized, cv::Point(int(detections[test][0]), int(detections[test][1])),
+                     cv::Point(int(detections[test][2]), int(detections[test][3])), cv::Scalar( 110, 220, 0 ), 2);
+        cv::imwrite( "my_image_" + std::to_string(image_count) + ".jpg", imgResized );
+        image_count++;
+#endif
 
         float diag = sqrtf(float(image.rows*image.rows)+float(image.cols*image.cols));
         float min_len = diag*L3D_DEF_MIN_LINE_LENGTH_FACTOR;

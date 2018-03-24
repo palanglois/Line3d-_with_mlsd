@@ -3,3 +3,5 @@ build/
 cmake-build-debug/
 cmake-build-release/
 data/CastleP30/images.txt
+data/CastleP30/Line3D*
+data/CastleP30/detection*

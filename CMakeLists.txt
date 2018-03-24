@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
 
+set(CMAKE_CXX_STANDARD 11)
 #set (CMAKE_BUILD_TYPE Release)
 SET (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(L3DPP_MLSD 1)
+add_definitions(-DDEBUG_MLSD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(-DTEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/")
 
