@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <tclap/CmdLine.h>
 #include <tclap/CmdLineInterface.h>
 #include <boost/filesystem.hpp>
-#include "eigen3/Eigen/Eigen"
+#include "Eigen/Eigen"
 
 // std
 #include <iostream>
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 
     // create Line3D++ object
     L3DPP::Line3D* Line3D = new L3DPP::Line3D(outputFolder,loadAndStore,maxWidth,
-                                              maxNumSegments,true,useGPU);
+                                              maxNumSegments,false,useGPU);
 
     // read NVM file
     std::ifstream nvm_file;
@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
         std::cerr << "No aligned cameras in NVM file!" << std::endl;
         return -1;
     }
+    std::cout << "Found " << num_cams << " cameras in NVM file." << std::endl;
 
     // read camera data (sequentially)
     std::vector<std::string> cams_imgFilenames(num_cams);
@@ -217,6 +218,7 @@ int main(int argc, char *argv[])
 
         cams_translation[i] = t;
         cams_rotation[i] = R;
+        std::cout << "Read data for image number " << i << "." << std::endl;
     }
 
     // read number of images
@@ -258,11 +260,56 @@ int main(int argc, char *argv[])
     }
     nvm_file.close();
 
+    std::cout << "Loading images !" << std::endl;
+
     // load images (parallel)
 #ifdef L3DPP_OPENMP
     #pragma omp parallel for
 #endif //L3DPP_OPENMP
-    for(unsigned int i=0; i<num_cams; ++i)
+    for(int i=0; i<num_cams; ++i)
+    {
+        // parse filename
+        std::string fname = cams_imgFilenames[i];
+        boost::filesystem::path img_path(fname);
+
+        // load image
+        cv::Mat image;
+        if(use_full_image_path)
+            image = cv::imread(inputFolder+"/"+fname,CV_LOAD_IMAGE_GRAYSCALE);
+        else
+            image = cv::imread(inputFolder+"/"+img_path.filename().string(),CV_LOAD_IMAGE_GRAYSCALE);
+
+        // setup intrinsics
+        float px = float(image.cols)/2.0f;
+        float py = float(image.rows)/2.0f;
+        float f = cams_focals[i];
+
+        Eigen::Matrix3d K = Eigen::Matrix3d::Zero();
+        K(0,0) = f;
+        K(1,1) = f;
+        K(0,2) = px;
+        K(1,2) = py;
+        K(2,2) = 1.0;
+
+        // set neighbors
+        std::list<unsigned int> neighbor_list;
+        size_t n_before = neighbors/2;
+        for(int nID=int(i)-1; nID >= 0 && neighbor_list.size()<n_before; --nID)
+        {
+            neighbor_list.push_back(nID);
+        }
+        for(int nID=int(i)+1; nID < int(cams_rotation.size()) && neighbor_list.size() < neighbors; ++nID)
+        {
+            neighbor_list.push_back(nID);
+        }
+
+        // add to system
+        Line3D->addImage(i,image,K,cams_rotation[i],
+                         cams_translation[i],
+                         -1.0f,neighbor_list);
+
+    }
+    /*for(int i=0; i<num_cams; ++i)
     {
         if(cams_worldpointDepths[i].size() > 0)
         {
@@ -316,7 +363,7 @@ int main(int argc, char *argv[])
                              cams_translation[i],
                              med_depth,cams_worldpointIDs[i]);
         }
-    }
+    }*/
 
     // match images
     Line3D->matchImages(sigmaP,sigmaA,neighbors,epipolarOverlap,
